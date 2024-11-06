@@ -1,0 +1,10 @@
+python-dotenv
+pandas
+numpy
+chardet
+nbformat
+nbconvert
+requests
+lxml
+fsspec
+rest-pandas
