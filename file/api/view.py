@@ -16,17 +16,18 @@ class FileViewAllApiView(APIView):
     pagination_class = Pagination
 
     def get(self, request, *args, **kwargs):
-        file_name = request.query_params.get('file')
-        file_queryset = File.objects.filter(is_deleted=False, is_sample=False)
+        try:
+            # Temporarily remove filters to test if the issue persists
+            file_queryset = File.objects.all().order_by("-created_at")
 
-        if file_name:
-            file_queryset = file_queryset.filter(file__icontains=file_name)
+            paginator = self.pagination_class()
+            result_page = paginator.paginate_queryset(file_queryset, request)
+            serializer = FileResponeSerializer(result_page, many=True)
 
-        paginator = self.pagination_class()
-        result_page = paginator.paginate_queryset(file_queryset.order_by("-created_at"), request)
-        serializer = FileResponeSerializer(result_page, many=True)
-        
-        return paginator.get_paginated_response(serializer.data)
+            return paginator.get_paginated_response(serializer.data)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class FileUploadImageView(APIView):
     parser_class = (FileUploadParser,)

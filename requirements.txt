@@ -8,3 +8,6 @@ requests
 lxml
 fsspec
 rest-pandas
+pymongo
+djongo
+mongoengine

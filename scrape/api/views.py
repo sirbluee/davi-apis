@@ -82,12 +82,23 @@ class ViewDataSetByFilenameView(APIView):
     pagination_class = Pagination
 
     def get(self, request, *args, **kwargs):
+        # Load dataset based on the filename parameter
         data = load_dataset(filename=kwargs.get('filename'))
-        records = data.get("data", [])  # Extract the list of records
+        
+        # Check if data is None, meaning file loading might have failed
+        if data is None:
+            return Response(
+                {"detail": "Dataset not found or could not be loaded."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
+        # Safely access "data" key, defaulting to an empty list if not present
+        records = data.get("data", [])
+        
         paginator = self.pagination_class()
         result_page = paginator.paginate_queryset(records, request)
-
+        
+        # Build paginated response and attach additional metadata
         paginated_response = paginator.get_paginated_response(result_page).data
         paginated_response["headers"] = list(data.get("header", []))
         paginated_response["file"] = data.get("file", "")
@@ -95,3 +106,4 @@ class ViewDataSetByFilenameView(APIView):
         paginated_response["filename"] = kwargs.get('filename')
 
         return Response(paginated_response)
+
